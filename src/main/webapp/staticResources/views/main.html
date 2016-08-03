@@ -1,0 +1,143 @@
+<html>
+	<head>
+		<link rel="stylesheet" href="staticResources/css/angular-material.css">
+
+		<script src="staticResources/js/angular.js" type="text/javascript" ></script>
+		<script src="staticResources/js/angular-messages.js" type="text/javascript" ></script>
+    	<script src="staticResources/js/angular-animate.js" type="text/javascript" ></script>
+    	<script src="staticResources/js/angular-aria.js" type="text/javascript" ></script>
+    	<script src="staticResources/js/angular-material.js" type="text/javascript" ></script>
+
+    	<script src="staticResources/js/app.js" type="text/javascript" charset="UTF-8"></script>
+
+    	<style type="text/css">
+    		md-card[md-ink-ripple] {
+  				position: relative;
+			}
+			md-content, .cards-container { height: 100%; }
+
+			.cards-container md-card img{ height: auto !important; }
+
+			h1{ text-align: center; }
+
+			md-card{ opacity: 1; }
+
+			md-card.ng-move, md-card.ng-enter{
+				-webkit-transition: all 1s linear;
+			    transition: all 1s linear;
+			    opacity: 0;
+			}
+
+			md-card.ng-move.ng-move-active, md-card.ng-enter.ng-enter-active{
+				opacity: 1;
+			}
+
+			md-card.ng-leave {
+			  animation: 0.5s my_animation;
+			}
+
+			md-dialog{ padding: 0 30px; min-width: 500px; }
+			md-dialog-actions{ border: 0 !important; }
+			md-dialog-content{ overflow-y: visible !important; overflow-x: hidden !important; }
+
+			@keyframes my_animation {
+			  from { opacity: 1; }
+			  to { opacity:0; }
+			}
+
+			md-input-container{ display: block; }
+			.fix { margin-top: 0px !important; opacity: 1 !important; }
+
+			md-progress-linear{ margin-top: 10px; }
+			md-progress-linear + span.md-subheader { margin-top: 5px; }
+
+			md-card-title-media{ margin-left: 10px; }
+
+		</style>
+
+		<title>Vote no Restaurante</title>
+	</head>
+
+	<body ng-app="voteNoRestaurante" ng-controller="ContestController as ctrl" layout="column">
+
+  		<md-content layout="column" layout-align="center none">
+
+  			<h1 ng-if="ctrl.finished" class="md-display-1">{{ctrl.currentContenders[0].name}} &eacute; o vencedor!!</h1>
+
+			<div layout="row" layout-align="space-around center" class="cards-container">
+				<md-card flex="30" md-ink-ripple ng-repeat="contender in ctrl.currentContenders" ng-click="ctrl.vote(contender.name, $event)">
+					<md-card-title>
+						<md-card-title-text>
+							<span class="md-headline">{{contender.name}}</span>
+						</md-card-title-text>
+					</md-card-title>
+					<img ng-src="{{contender.imgUrl}}" class="md-card-image" alt="image caption">
+				</md-card>
+			</div>
+  		</md-content>
+
+  		<div style="visibility: hidden">
+	  		<div class="md-dialog-container" id="contestOverDialog">
+		  		<md-dialog aria-label="Envie seus resultados!" >
+		  		  <h2>Envie seu resultado!</h2>
+				  <md-dialog-content>
+				    <form name="ctrl.userData">
+					  <md-input-container>
+					    <label>Nome</label>
+					    <input name="name" ng-model="ctrl.voteData.name" required minlength="3"
+				    	   ng-blur="!ctrl.userData.name.$dirty && ctrl.userData.name.$setDirty()">
+					    <div ng-messages="ctrl.userData.name.$error" ng-if="ctrl.userData.name.$dirty">
+					      <div class="fix" ng-message="required">Este campo &eacute; obrigat&oacute;rio.</div>
+					      <div class="fix" ng-message="minlength">Seu nome n&atilde;o est&aacute; curto demais?</div>
+					    </div>
+					  </md-input-container>
+					  <md-input-container>
+					    <label>E-mail</label>
+					    <input name="email" ng-model="ctrl.voteData.email" type="email" required minlength="5"
+				    	   ng-blur="!ctrl.userData.email.$dirty && ctrl.userData.email.$setDirty()">
+					    <div ng-messages="ctrl.userData.email.$error" ng-if="ctrl.userData.email.$dirty">
+					      <div class="fix" ng-message="required" style="margin-top: 0px;">Este campo &eacute; obrigat&oacute;rio.</div>
+					      <div class="fix" ng-message="email">Este e-mail &eacute; inv&aacute;lido, char&aacute;.</div>
+					      <div class="fix" ng-message="minlength">Seu e-mail n&atilde;o est&aacute; curto demais?</div>
+					    </div>
+					  </md-input-container>
+					</form>
+				  </md-dialog-content>
+				  <md-dialog-actions>
+				    <md-button ng-click="ctrl.sendResult()" class="md-primary">Enviar</md-button>
+		 		    <md-button ng-click="ctrl.cancelContest()" class="">Cancelar</md-button>
+				  </md-dialog-actions>
+				</md-dialog>
+			</div>
+
+			<div class="md-dialog-container" id="contestResultsDialog">
+		  		<md-dialog aria-label="Resultado enviado com sucesso!" >
+		  		  <h2>Seu resultado foi enviado com sucesso!</h2>
+				  <md-dialog-content>
+					<md-card ng-repeat="entry in ctrl.results">
+				        <md-card-title>
+				          <md-card-title-text>
+				            <span class="md-headline">{{entry.name}}</span>
+				            <span class="md-subhead">{{entry.address}}</span>
+				            <md-progress-linear md-mode="determinate"
+				            	ng-value="entry.votes*100/ctrl.totalVotes">
+				            </md-progress-linear>
+				            <span class="md-subheader">Votos: {{entry.votes}}/{{ctrl.totalVotes}} ({{entry.votes*100/ctrl.totalVotes | number:1}}%)</span>
+				          </md-card-title-text>
+				          <md-card-title-media>
+				            <div class="md-media-sm card-media">
+				            	<img ng-src="{{entry.imgUrl}}"></img>
+				            </div>
+				          </md-card-title-media>
+				        </md-card-title>
+			      	</md-card>
+				  </md-dialog-content>
+				  <md-dialog-actions>
+				    <md-button ng-click="ctrl.cancelContest()" class="md-primary">Reiniciar</md-button>
+				  </md-dialog-actions>
+				</md-dialog>
+			</div>
+		</div>
+
+	</body>
+</html>
